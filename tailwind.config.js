@@ -1,10 +1,14 @@
 module.exports = {
-  content: ["./dist/**/*.{html,js}"],
+  content: ["./dist/**/*.{html,js,php}"],
   theme: {
     listStyleType: {
       check: '✓',
     },
-    extend: {},
+    extend: {
+      backgroundImage: {
+        'bgcover': "url('../assets/imgs/logo.png')",
+      }
+    },
   },
   variants: {},
   plugins: [],
