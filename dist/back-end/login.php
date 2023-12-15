@@ -6,6 +6,10 @@
   $email = "";
   $password = "";
   $loginErr = "";
+  $gesture1 = "⬆️";
+  $gesture2 = "STOP";
+  $gesture3 = "<< LEFT";
+  $gesture4 = " RIGHT >>";
 
   if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
@@ -40,8 +44,11 @@
             $update_stmt->execute();
             $update_stmt->close();
 
-            header("Location: ../pages/Success.php");
+          
+            $encodedEmail = urlencode($email);
+            header("Location: ../pages/Success.php?email=$encodedEmail");
             exit;
+        
     
         } else {
             $loginErr = "Incorrect password!";

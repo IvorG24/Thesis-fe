@@ -1,3 +1,37 @@
+<?php
+ require '../back-end/Config.php';
+
+ 
+ if (isset($_GET['email'])) {
+    $email = urldecode($_GET['email']);
+} 
+
+$stmt = $conn->prepare("SELECT * FROM users WHERE EMAIL = ?");
+$stmt->bind_param("s", $email); 
+$stmt->execute();
+$result = $stmt->get_result(); 
+$userData = null;
+if ($row = $result->fetch_assoc()) {
+    $userData = $row;
+}
+
+$user_id = $userData ? $userData['USER_ID'] : null;
+$firstname = $userData ? $userData['FIRSTNAME'] : null;
+
+$get_gesture = $conn->prepare(
+"SELECT * FROM gesture AS G
+INNER JOIN users AS U
+ON G.USER_ID = U.USER_ID
+WHERE U.USER_ID = ?
+");
+
+$get_gesture->bind_param("i", $user_id); 
+$get_gesture->execute();
+$gesture_results = $get_gesture->get_result(); 
+$gestures = [];
+
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,11 +49,13 @@
                     <img src="../assets/imgs/logo.png" height="70" width="70" alt="">
                     <h1 class="text-3xl font-semibold">BicycleGlove</h1>
                 </div>
-                <div class="flex gap-4 md:gap-6 lg:gap-8">
-                    <a href="#">Home</a>
-                    <a href="#">Welcome ,</a>
-                   
-                </div>
+                <?php
+              if ($firstname) {
+                echo '<div class="flex gap-4 md:gap-6 lg:gap-8">
+                        <h1 href="#">Welcome, ' . htmlspecialchars($firstname) . '</h1>
+                      </div>';
+                }
+                ?>
             </div>
         </nav>
         <div class="flex w-screen h-auto">
@@ -122,69 +158,108 @@
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
                 </svg>
-
                 </div>
              </div>
+
+             <?php
+               while ($gesture_row = $gesture_results->fetch_assoc()) {
+                $gestures[] = $gesture_row; // Store each gesture
+              
+         
+               foreach ($gestures as $gesture) {
+                for ($i = 5; $i <= 14; $i++) {
+                    $gestureKey = 'GESTURE' . $i;
+            
+                    if (!empty($gesture[$gestureKey])) {
+                        $displayGestureKey = 'Gesture ' . $i;
+                        echo '
+                        <div class="gestures w-11/12 border-2 rounded-full h-20 bg-white flex justify-between px-10 items-center">
+                            <div>
+                                <h1 class="text-xl">' . htmlspecialchars($displayGestureKey) . '</h1>
+                            </div>
+                            <div class="flex gap-5">
+                            <a href="gesturedetails.php"><button>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
+                            </svg></button></a>
+                            
+                            <a><button class="remove" onclick="removeGesture(event)">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                            </svg>
+                            </button></a>
+                          </div>
+                        </div>';
+                    }
+                }
+            }
+               }
+
+             ?>
             </div>
         </div>
     </div>
 </body>
 <script src="../assets/js/main.js"></script>
 <script>
-  let gestureCount = 4; // Starting from 4
+    // This function initializes the gestureCount based on existing gesture elements
+    function initializeGestureCount() {
+        const existingGestures = document.querySelectorAll('.gestures').length;
+        return existingGestures > 0 ? existingGestures : 4;
+    }
 
-function addGesture() {
-    gestureCount++;
-    const newGesture = `
-        <div class="gestures w-11/12 border-2 rounded-full h-20 bg-white flex justify-between px-10 items-center">
-            <div>
-                <h1 class="text-xl">Gesture ${gestureCount}</h1>
-            </div>
-        <div class="flex gap-5">
+    let gestureCount = initializeGestureCount(); // Initialize gestureCount
+
+    function addGesture() {
+        gestureCount++;
+        const newGesture = `
+            <div class="gestures w-11/12 border-2 rounded-full h-20 bg-white flex justify-between px-10 items-center">
+                <div>
+                    <h1 class="text-xl">Gesture ${gestureCount}</h1>
+                </div>
+                <form class="flex gap-5" action="../back-end/validation/delete.php" action="post">
+                <a href="gesturedetails.php"><button>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
-                </svg>
-                
-                <button class="remove" onclick="removeGesture(event)">
+                </svg></button></a>
+                <input type="hidden" name="gestureId" value="${gestureCount}">
+                <a><button class="remove" onclick="removeGesture(event)" type="submit">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
                 </svg>
-                </button>
-        </div>
-        </div>
-    `;
+                </button></a>
+        </form>
+            </div>
+        `;
 
-    document.getElementById('gestures-container').innerHTML += newGesture;
+        document.getElementById('gestures-container').innerHTML += newGesture;
 
-    // Check if gestureCount reaches 14 and disable the button if it does
-    if (gestureCount === 14) {
-        document.querySelector('.add-gesture-btn').disabled = true;
-    }
-}
-
-// Optionally, enable the button when the count is less than 14 (in case you need this in other parts of your script)
-function enableGestureButton() {
-    if (gestureCount < 14) {
-        document.querySelector('.add-gesture-btn').disabled = false;
-    }
-}
-
-function removeGesture(event) {
-    // Prevent the default action of the button
-    event.preventDefault();
-
-    // Find the parent gesture box of the clicked remove button and remove it
-    const gestureBox = event.target.closest('.gestures');
-    if (gestureBox) {
-        gestureBox.remove();
-        gestureCount--; // Decrease the gesture count
-
-        // Optionally, re-enable the add button if gestureCount is less than 14
-        if (gestureCount < 14) {
-            document.querySelector('.add-gesture-btn').disabled = false;
+        // Check if gestureCount reaches 14 and disable the add button if it does
+        if (gestureCount === 14) {
+            document.querySelector('.add-gesture-btn').disabled = true;
         }
     }
-}
+
+    function removeGesture(event) {
+        event.preventDefault();
+        const gestureBox = event.target.closest('.gestures');
+        if (gestureBox) {
+            gestureBox.remove();
+            gestureCount--;
+            // Re-enable the add button if gestureCount is less than 14
+            if (gestureCount < 14) {
+                document.querySelector('.add-gesture-btn').disabled = false;
+            }
+        }
+    }
+
+    // Event listener to initialize gestureCount on DOM content loaded
+    document.addEventListener('DOMContentLoaded', function () {
+        gestureCount = initializeGestureCount();
+    });
+
+    
+
 
 
 </script>

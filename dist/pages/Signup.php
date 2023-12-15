@@ -24,7 +24,7 @@
               <input class="px-2 py-4 rounded-md bg-blue-50 " name="email" type="email" placeholder="Email">
               <input class="px-2 py-4 rounded-md bg-blue-50" name="password" type="password" placeholder="Password">
               <input class="px-2 py-4 rounded-md bg-blue-50" name="passwordVerify" type="password" placeholder="Confirm-Passowrd">
-              <button class="bg-blue-600 px-10 py-2 text-white rounded-md" type="submit">Log in</button>
+              <button class="bg-blue-600 px-10 py-2 text-white rounded-md" type="submit">Register</button>
               <div>
               <?php
                 if (isset($_GET['passwordErr'])) {

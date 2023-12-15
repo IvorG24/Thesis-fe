@@ -12,14 +12,28 @@
     $passwordVerify = $_POST['passwordVerify'];
     $passwordErr="";
     $emailErr="";
+    $gesture1 = "⬆️";
+    $gesture2 = "STOP";
+    $gesture3 = "<< LEFT";
+    $gesture4 = " RIGHT >>";
+
+    $sourceQuery1 = "SELECT * FROM gesture WHERE GESTURE_ID = (SELECT MAX(GESTURE_ID) FROM gesture)";
+    $results = mysqli_query($conn, $sourceQuery1);
+    $rows = mysqli_fetch_assoc($results);
+  
+    if ($rows === false || empty($rows)) {
+        $foreignkey = 1; 
+    } else {
+        $foreignkey = $rows['USER_ID'] + 1; 
+    }
+  
+
     // Check if passwords match
     if ($password !== $passwordVerify) {
       $passwordErr ="Error: Passwords do not match.";
       header("Location: ../pages/Signup.php?passwordErr=" . urlencode($passwordErr));
       exit;
     }
-
-    // Check if email already exists
     $stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
     $stmt->bind_param("s", $email);
     $stmt->execute();
@@ -43,6 +57,11 @@
 
     // Execute SQL statement
     $stmt->execute();
+
+    $insert_gesture = $conn->prepare("INSERT INTO gesture (GESTURE1,GESTURE2,GESTURE3,GESTURE4,USER_ID) VALUES (?,?,?,?,?)");
+    $insert_gesture->bind_param("ssssi", $gesture1, $gesture2, $gesture3 , $gesture4 , $foreignkey);
+    $insert_gesture->execute();
+
 
     header("Location: ../pages/Login.php");
 
