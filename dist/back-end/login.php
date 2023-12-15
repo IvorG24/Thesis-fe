@@ -31,7 +31,7 @@
             session_regenerate_id();
 
             $_SESSION['USER_ID'] = $user['USER_ID'];
-            $_SESSION['EMAIL'] = $email;
+            $_SESSION['email'] = $email;
     
             // Get the new session ID and store it in the database
             $newSessionId = session_id();
@@ -54,6 +54,7 @@
         exit;
     }
 
-    $stmt->close();
+   
   }
+  $stmt->close();
 ?>

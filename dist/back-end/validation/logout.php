@@ -3,6 +3,8 @@ session_start();
 
 require '../Config.php'; // Ensure this points to your database configuration file
 
+
+
 // Check if the user is logged in
 if (isset($_SESSION['USER_ID'])) {
     $user_id = $_SESSION['USER_ID'];
