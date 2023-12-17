@@ -28,10 +28,14 @@
                     $loginErr = $_GET['loginErr'];
                     echo '<p class="text-red-600 pb-2 text-center">' . htmlspecialchars($loginErr)  . '</p>';}
                 ?>
+               
                 <span>Do you have an account ?</span>
                 <span><a href="./Signup.php" class="text-gray-600 hover:text-black duration-150">Sign up</a></span>
               </div>
           </form>
+          <form action="../back-end/validation/delete.php" method="post">
+                  <input type="hidden" name="email">
+                </form>
         </div>
       </div>
     </div>

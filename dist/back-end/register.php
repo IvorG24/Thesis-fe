@@ -17,7 +17,7 @@
     $gesture3 = "<< LEFT";
     $gesture4 = " RIGHT >>";
 
-    $sourceQuery1 = "SELECT * FROM gesture WHERE GESTURE_ID = (SELECT MAX(GESTURE_ID) FROM gesture)";
+    $sourceQuery1 = "SELECT * FROM users WHERE USER_ID = (SELECT MAX(USER_ID) FROM users)";
     $results = mysqli_query($conn, $sourceQuery1);
     $rows = mysqli_fetch_assoc($results);
   

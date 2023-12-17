@@ -33,10 +33,8 @@
         if (password_verify($password, $user['PASSWORD'])) {
             // Regenerate session ID
             session_regenerate_id();
-
-            $_SESSION['USER_ID'] = $user['USER_ID'];
             $_SESSION['email'] = $email;
-    
+            $_SESSION['USER_ID'] = $user['USER_ID'];
             // Get the new session ID and store it in the database
             $newSessionId = session_id();
             $update_stmt = $conn->prepare("UPDATE users SET SESSION_ID = ? WHERE USER_ID = ?");
@@ -63,5 +61,4 @@
 
    
   }
-  $stmt->close();
 ?>
