@@ -16,53 +16,80 @@
     $gesture2 = "STOP";
     $gesture3 = "<< LEFT";
     $gesture4 = " RIGHT >>";
+    $display = $_POST['display'] ?? '';
+    $finger1 = $_POST['finger1'] ?? 0;
+    $finger2 = $_POST['finger2'] ?? 0;
+    $finger3 = $_POST['finger3'] ?? 0;
+    $finger4 = $_POST['finger4'] ?? 0;
 
-    $sourceQuery1 = "SELECT * FROM users WHERE USER_ID = (SELECT MAX(USER_ID) FROM users)";
+    $sourceQuery1 = "SELECT MAX(USER_ID) AS max_user_id FROM users";
     $results = mysqli_query($conn, $sourceQuery1);
-    $rows = mysqli_fetch_assoc($results);
-  
-    if ($rows === false || empty($rows)) {
-        $foreignkey = 1; 
+    $row = mysqli_fetch_assoc($results);
+    
+    if ($row === null) {
+        $foreignkey = 1;
     } else {
-        $foreignkey = $rows['USER_ID'] + 1; 
+        $foreignkey = $row['max_user_id'] + 1;
     }
-  
-
+    
     // Check if passwords match
     if ($password !== $passwordVerify) {
       $passwordErr ="Error: Passwords do not match.";
       header("Location: ../pages/Signup.php?passwordErr=" . urlencode($passwordErr));
       exit;
-    }
-    $stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
-    $stmt->bind_param("s", $email);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    if ($result->num_rows > 0) {
+  }
+  
+  $stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
+  $stmt->bind_param("s", $email);
+  $stmt->execute();
+  $result = $stmt->get_result();
+  
+  if ($result->num_rows > 0) {
       $emailErr = "Error: Email already exists.";
       header("Location: ../pages/Signup.php?emailErr=" . urlencode($emailErr));
       exit;
-    }
-    $stmt->close();
+  }
+  
+  $stmt->close();
+  
+  $stmt = $conn->prepare("INSERT INTO users (firstname, lastname, email, password) VALUES (?, ?, ?, ?)");
+  $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+  $stmt->bind_param("ssss", $firstname, $lastname, $email, $hashedPassword);
+  
+  // Execute the statement and check for errors
+  if (!$stmt->execute()) {
+      // Handle the error (e.g., display an error message)
+      echo "Error: " . $stmt->error;
+      exit;
+  }
+  
+  $insert_gesture = $conn->prepare("INSERT INTO gesture (GESTURE1, GESTURE2, GESTURE3, GESTURE4, USER_ID) VALUES (?, ?, ?, ?, ?)");
+  $insert_gesture->bind_param("ssssi", $gesture1, $gesture2, $gesture3, $gesture4, $foreignkey);
+  $insert_gesture->execute();
 
-    // Prepare SQL statement for insertion
-    $stmt = $conn->prepare("INSERT INTO users (firstname, lastname, email, password) VALUES (?, ?, ?, ?)");
 
-    // Hash the password before storing it
-    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
-    // Bind parameters to the SQL statement
-    $stmt->bind_param("ssss", $firstname, $lastname, $email, $hashedPassword);
-
-    // Execute SQL statement
-    $stmt->execute();
-
-    $insert_gesture = $conn->prepare("INSERT INTO gesture (GESTURE1,GESTURE2,GESTURE3,GESTURE4,USER_ID) VALUES (?,?,?,?,?)");
-    $insert_gesture->bind_param("ssssi", $gesture1, $gesture2, $gesture3 , $gesture4 , $foreignkey);
+  for ($i = 1; $i <= 4; $i++) {
+    $label = 'gesture' . $i;
+    $insert_gesture = $conn->prepare("INSERT INTO $label (DISPLAY, FINGER1, FINGER2, FINGER3, FINGER4, USER_ID) VALUES (?, ?, ?, ?, ?, ?)");
+    $insert_gesture->bind_param("siiiii", ${'gesture'.$i}, $finger1, $finger2, $finger3, $finger4, $foreignkey);
     $insert_gesture->execute();
+}
 
+  $gestureTables = array(5, 6, 7, 8, 9, 10, 11, 12, 13, 14);
 
+  foreach ($gestureTables as $table) {
+    $label = 'gesture' . $table;
+    $insert_statement = $conn->prepare("INSERT INTO $label (DISPLAY, FINGER1, FINGER2, FINGER3, FINGER4, USER_ID) VALUES (?, ?, ?, ?, ?, ?)");
+    $insert_statement->bind_param("siiiii", $display, $finger1, $finger2, $finger3, $finger4, $foreignkey);
+    $insert_statement->execute();
+}
+  // Execute the statement and check for errors
+  if (!$insert_gesture && !$insert_statement ->execute()) {
+      // Handle the error (e.g., display an error message)
+      echo "Error: " . $insert_gesture->error;
+      exit;
+  }    
     header("Location: ../pages/Login.php");
 
     // Close statement

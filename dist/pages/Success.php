@@ -1,5 +1,4 @@
 <?php
-
  require '../back-end/Config.php';
 
  
@@ -38,12 +37,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 $gestureId = $_POST['gestureId'];
 $Gesture = $gestureId;
-$stmt = $conn->prepare("UPDATE gesture g INNER JOIN users u ON g.USER_ID = u.USER_ID SET g.`$Gesture` = NULL WHERE u.USER_ID = ?");
+$gesturedel = strtolower($gestureId);
+$stmt = $conn->prepare("UPDATE gesture g INNER JOIN users u ON g.USER_ID = u.USER_ID SET g.`$Gesture` = NULL WHERE u.USER_ID = ?"); 
 $stmt->bind_param("i", $user_id);
 $success = $stmt->execute();
 
+$gesturedelete = $conn->prepare("UPDATE `$gesturedel` g INNER JOIN users u ON g.USER_ID = u.USER_ID SET g.DISPLAY = '' WHERE u.USER_ID = ?"); 
+$gesturedelete->bind_param("i", $user_id);
+$success2 = $gesturedelete->execute();
+
 if ($success) {
-    header("Location: ../pages/Success.php?email=$emailuser");
+    header("Location: ../pages/Success.php?email=$email");
 } else {
     // Handle error
     echo "Error: " . $conn->error;
@@ -60,27 +64,33 @@ if ($success) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="../assets/css/main.css" />
     <link rel="stylesheet" href="https://unpkg.com/tailwindcss@2.2.19/dist/tailwind.min.css"/>
-    <title>Tailwind Boilerplate</title>
+    <title>User Dashboard</title>
 </head>
-<body class="overflow-auto">
-    <div class="container">
+<body class="overflow-x-hidden bg-blue-100 ">
+    <div class="container ">
         <nav class="bg-blue-200 w-screen">
-            <div class="flex justify-between items-center px-4 md:px-8 lg:px-12">
+            <div class="flex justify-around gap-20 items-center md:justify-between px-8">
                 <div class="flex items-center">
                     <img src="../assets/imgs/logo.png" height="70" width="70" alt="">
-                    <h1 class="text-3xl font-semibold">BicycleGlove</h1>
+                    <h1 class="text-xl font-semibold md:text-3xl">BicycleGlove</h1>
                 </div>
+                <button id="toggleSidebar" class="md:hidden">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 block md:hidden">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                </svg>
+                </button>
+
                 <?php
               if ($firstname) {
-                echo '<div class="flex gap-4 md:gap-6 lg:gap-8">
+                echo '<div class="hidden md:block gap-6 lg:block">
                         <h1 href="#">Welcome, ' . htmlspecialchars($firstname) . '</h1>
                       </div>';
                 }
                 ?>
             </div>
         </nav>
-        <div class="flex w-screen h-auto">
-            <div class="left flex-grow-1 border-2 flex flex-col px-20 h-screen gap-10 pt-10 pb-6 overflow-hidden">
+        <div class="flex w-screen h-auto overflow-y-hidden md:h-auto">
+        <div class="left flex-grow-1 bg-white hidden px-20 h-screen gap-10 pt-10 pb-6 overflow-hidden md:flex flex-col">
                 <div class="flex gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
@@ -122,9 +132,9 @@ if ($success) {
             </div>
         
             <div id="gestures-container" class="right flex flex-col flex-grow justify-start items-center gap-5 h-auto overflow-auto bg-blue-100">
-              <div class="divider px-20 pt-10 flex justify-between w-11/12 ">
+              <div class="divider px-5 items-center pt-10 flex justify-between w-11/12 md:px-20">
                 <div>
-                    <h1 class="text-3xl font-bold">Gestures</h1>
+                    <h1 class="text-xl font-bold md:text-3xl">Gestures</h1>
                 </div>
                 <div>
                     <button class="add-gesture-btn flex bg-white gap-2 rounded-lg px-3 py-2 items-center shadow-md" onclick="addGesture()">
@@ -137,7 +147,7 @@ if ($success) {
               </div>
             </div>
             
-              <div  class=" gestures w-11/12 border-2 rounded-full h-20 overflow-auto bg-white flex justify-between px-10 items-center">
+              <div  class=" gestures w-11/12 rounded-full h-20 overflow-auto bg-white flex justify-between px-10 my-2 items-center">
                 <div>
                     <h1 class="text-xl">Gesture 1</h1>
                 </div>
@@ -148,7 +158,7 @@ if ($success) {
                 </div>
              </div>
             
-             <div class="gestures w-11/12 border-2 rounded-full h-20 bg-white flex justify-between px-10 items-center">
+             <div class="gestures w-11/12 rounded-full h-20 bg-white flex justify-between px-6 my-2 items-center">
                 <div>
                     <h1 class="text-xl">Gesture 2</h1>
                 </div>
@@ -160,7 +170,7 @@ if ($success) {
                 </div>
              </div>
              
-             <div class="gestures w-11/12 border-2 rounded-full h-20 bg-white flex justify-between px-10 items-center">
+             <div class="gestures w-11/12 rounded-full h-20 bg-white flex justify-between px-6 my-2 items-center">
                 <div>
                     <h1 class="text-xl">Gesture 3</h1>
                 </div>
@@ -171,7 +181,7 @@ if ($success) {
                 </div>
              </div>
 
-             <div class="gestures w-11/12 border-2 rounded-full h-20 bg-white flex justify-between px-10 items-center">
+             <div class="gestures w-11/12 rounded-full h-20 bg-white flex justify-between px-6 my-2 items-center">
                 <div>
                     <h1 class="text-xl">Gesture 4</h1>
                 </div>
@@ -183,42 +193,45 @@ if ($success) {
              </div>
 
              <?php
-               while ($gesture_row = $gesture_results->fetch_assoc()) {
-                $gestures[] = $gesture_row; // Store each gesture
-              
-         
-               foreach ($gestures as $gesture) {
-                for ($i = 5; $i <= 14; $i++) {
-                    $gestureKey = 'GESTURE' . $i;
-            
-                    if (!empty($gesture[$gestureKey])) {
-                        $displayGestureKey = 'Gesture ' . $i;
-                        $encodedEmail = htmlspecialchars(urlencode($email));
-                        echo '
-                        <div class="gestures w-11/12 border-2 rounded-full h-20 bg-white flex justify-between px-10 items-center">
-                            <div>
-                                <h1 class="text-xl">' . htmlspecialchars($displayGestureKey) . '</h1>
-                            </div>
-                            <form class="flex gap-5" method="post" action="">
-                            <a href="gesturedetails.php?email=' . $encodedEmail . '" class="edit-button">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
-                            </svg></a>
+while ($gesture_row = $gesture_results->fetch_assoc()) {
+    $gestures[] = $gesture_row; // Store each gesture
 
-                            <input type="hidden" name="gestureId" value="'.$gestureKey.'">
-                            <a><button class="remove" type="submit">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                            </svg>
-                            </button></a>
-                          </form>
-                        </div>';
-                    }
-                }
+    foreach ($gestures as $gesture) {
+        for ($i = 5; $i <= 14; $i++) {
+            $gestureKey = 'GESTURE' . $i;
+
+            if (!empty($gesture[$gestureKey])) {
+                // Extracting numeric part from $gestureKey
+                preg_match('/\d+/', $gestureKey, $matches);
+                $gestureNumber = $matches[0];
+
+                $displayGestureKey = 'Gesture ' . $gestureNumber;
+                $encodedEmail = htmlspecialchars(urlencode($email));
+                echo '
+                <div class="gestures w-11/12 rounded-full h-20 bg-white flex justify-between px-10 items-center">
+                    <div>
+                        <h1 class="text-xl">' . htmlspecialchars($displayGestureKey) . '</h1>
+                    </div>
+                    <form class="flex gap-5" method="post" action="">
+                    <a href="gesturedetails.php?email=' . $encodedEmail . '&gesture='.$gestureNumber.'" class="edit-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
+                    </svg></a>
+
+                    <input type="hidden" name="gestureId" value="'.$gestureKey.'">
+                    <a><button class="remove" type="submit">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                    </svg>
+                    </button></a>
+                    </form>
+                </div>';
             }
-               }
+        }
+    }
+}
+?>
 
-             ?>
             </div>
         </div>
     </div>
@@ -237,12 +250,12 @@ if ($success) {
     gestureCount++;
     const userEmail = "<?php echo htmlspecialchars(urlencode($email)); ?>"; // Get the email from PHP
     const newGesture = `
-        <div class="gestures w-11/12 border-2 rounded-full h-20 bg-white flex justify-between px-10 items-center">
+        <div class="gestures w-11/12 rounded-full h-20 bg-white flex justify-between px-10 my-2 items-center ">
             <div>
                 <h1 class="text-xl">Gesture ${gestureCount}</h1>
             </div>
             <form class="flex gap-5" action="" method="post">
-            <a href="gesturedetails.php?email=${userEmail}"><button type="button">
+            <a href="gesturedetails.php?email=${userEmail}&gesture=${gestureCount}"><button type="button">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
             <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
             </svg>
