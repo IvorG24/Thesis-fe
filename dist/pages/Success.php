@@ -42,9 +42,11 @@ $stmt = $conn->prepare("UPDATE gesture g INNER JOIN users u ON g.USER_ID = u.USE
 $stmt->bind_param("i", $user_id);
 $success = $stmt->execute();
 
-$gesturedelete = $conn->prepare("UPDATE `$gesturedel` g INNER JOIN users u ON g.USER_ID = u.USER_ID SET g.DISPLAY = '' WHERE u.USER_ID = ?"); 
+$gesturedelete = $conn->prepare("UPDATE `$gesturedel` g INNER JOIN users u ON g.USER_ID = u.USER_ID SET g.DISPLAY = '', g.FINGER1 = 0, g.FINGER2 = 0, g.FINGER3 = 0, g.FINGER4 = 0 WHERE u.USER_ID = ?");
 $gesturedelete->bind_param("i", $user_id);
 $success2 = $gesturedelete->execute();
+
+
 
 if ($success) {
     header("Location: ../pages/Success.php?email=$email");
@@ -89,8 +91,8 @@ if ($success) {
                 ?>
             </div>
         </nav>
-        <div class="flex w-screen h-auto overflow-y-hidden md:h-auto">
-        <div class="left flex-grow-1 bg-white hidden px-20 h-screen gap-10 pt-10 pb-6 overflow-hidden md:flex flex-col">
+        <div class="flex w-screen overflow-y-hidden">
+        <div class="left flex-grow-1 bg-white hidden px-20 gap-10 pt-10 pb-6 overflow-hidden md:flex flex-col h-auto">
                 <div class="flex gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
@@ -193,27 +195,27 @@ if ($success) {
              </div>
 
              <?php
-while ($gesture_row = $gesture_results->fetch_assoc()) {
-    $gestures[] = $gesture_row; // Store each gesture
+            while ($gesture_row = $gesture_results->fetch_assoc()) {
+                $gestures[] = $gesture_row; // Store each gesture
 
-    foreach ($gestures as $gesture) {
-        for ($i = 5; $i <= 14; $i++) {
-            $gestureKey = 'GESTURE' . $i;
+                foreach ($gestures as $gesture) {
+                    for ($i = 5; $i <= 14; $i++) {
+                        $gestureKey = 'GESTURE' . $i;
 
-            if (!empty($gesture[$gestureKey])) {
-                // Extracting numeric part from $gestureKey
-                preg_match('/\d+/', $gestureKey, $matches);
-                $gestureNumber = $matches[0];
+                        if (!empty($gesture[$gestureKey])) {
+                            // Extracting numeric part from $gestureKey
+                            preg_match('/\d+/', $gestureKey, $matches);
+                            $gestureNumber = $matches[0];
 
-                $displayGestureKey = 'Gesture ' . $gestureNumber;
-                $encodedEmail = htmlspecialchars(urlencode($email));
-                echo '
+                            $displayGestureKey = 'Gesture ' . $gestureNumber;
+                            $encodedEmail = htmlspecialchars(urlencode($email));
+                            echo '
                 <div class="gestures w-11/12 rounded-full h-20 bg-white flex justify-between px-10 items-center">
                     <div>
                         <h1 class="text-xl">' . htmlspecialchars($displayGestureKey) . '</h1>
                     </div>
                     <form class="flex gap-5" method="post" action="">
-                    <a href="gesturedetails.php?email=' . $encodedEmail . '&gesture='.$gestureNumber.'" class="edit-button">
+                    <a href="gesturedetails.php?email='.$encodedEmail .'&gesture='.$gestureNumber.'" class="edit-button">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
                     </svg></a>

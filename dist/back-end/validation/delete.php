@@ -5,7 +5,11 @@ require '../Config.php'; // Adjust the path as needed
 
 
     $encodedEmail = urlencode($email);
-    
+    $finger1 = 0;
+    $finger2 = 0;
+    $finger3 = 0;
+    $finger4 = 0;
+    $display= '';
     $stmt1 = $conn->prepare("SELECT * FROM users WHERE EMAIL = ?");
     $stmt1->bind_param("s", $emailuser); 
     $stmt1->execute();
@@ -16,20 +20,23 @@ require '../Config.php'; // Adjust the path as needed
 
     }
     $user_id = $userData ? $userData['USER_ID'] : null;
+    $gestureId = $_POST['gestureId'];
+    $Gesture = $gestureId;
+    $labelgesture = strtolower($Gesture);
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 
     
-    $gestureId = $_POST['gestureId'];
-    $Gesture = $gestureId;
+
     $stmt = $conn->prepare("UPDATE gesture g INNER JOIN users u ON g.USER_ID = u.USER_ID SET g.`$Gesture` = NULL WHERE u.USER_ID = ?");
     $stmt->bind_param("i", $user_id);
     $success = $stmt->execute();
 
+   
+
     if ($success) {
-        echo $user_id;
-        // header("Location: ../pages/Success.php?email=$emailuser");
+        header("Location: ../pages/Success.php?email=$emailuser");
     } else {
         // Handle error
         echo "Error: " . $conn->error;
